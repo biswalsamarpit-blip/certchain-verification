@@ -1,0 +1,28 @@
+{
+  "name": "certchain-certificate-verification",
+  "version": "1.0.0",
+  "description": "Decentralized, tamper-proof academic credential issuance and verification platform built on Ethereum and Ethers.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "blockchain",
+    "certificate-verification",
+    "ethereum",
+    "solidity",
+    "smart-contracts",
+    "ethersjs",
+    "web3",
+    "academic-credentials"
+  ],
+  "author": "CertChain Contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "solc": "^0.8.38"
+  },
+  "dependencies": {
+    "ethers": "^6.17.0"
+  }
+}

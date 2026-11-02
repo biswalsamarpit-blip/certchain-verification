@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1-Click Contract Deployer - CertChain</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Ethers.js v6 via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.0/ethers.umd.min.js"></script>
+    <!-- App Config -->
+    <script src="js/config.js"></script>
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="index.html" class="nav-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>CertChain</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Verify Certificate</a>
+            <a href="issuer.html" class="nav-link">Issuer Portal</a>
+            <a href="deploy.html" class="nav-link active">Deploy Contract</a>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">1-Click Smart Contract Deployer</h1>
+                <p class="card-subtitle">
+                    Deploy <b>CertificateRegistry.sol</b> directly to the <b>Ethereum Sepolia Testnet</b> using your MetaMask wallet.
+                </p>
+                <div style="margin-top: 0.75rem;">
+                    <span id="networkStatusPill" class="status-pill demo">
+                        <span class="status-dot"></span> Checking Wallet...
+                    </span>
+                </div>
+            </div>
+
+            <!-- Pre-flight Checklist Box -->
+            <div style="background: #f8fafc; border: 1.5px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.75rem;">
+                <h3 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--text-primary);">Deployment Checklist:</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>1. Contract Bytecode &amp; ABI:</span>
+                        <span style="color: var(--success); font-weight: 600;">✓ Compiled &amp; Ready</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>2. Target Blockchain:</span>
+                        <span style="font-weight: 600; color: var(--primary);">Ethereum Sepolia (ChainID: 11155111)</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>3. MetaMask Connection:</span>
+                        <span id="walletCheckText" style="font-weight: 600; color: #b45309;">Not Connected</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>4. SepoliaETH Gas Balance:</span>
+                        <span id="balanceCheckText" style="font-weight: 600; color: var(--text-muted);">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Action Buttons -->
+            <div id="walletActionArea">
+                <button id="connectBtn" class="btn btn-outline" style="width: 100%; margin-bottom: 1rem;" onclick="connectAndCheckWallet()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                        <line x1="2" y1="10" x2="22" y2="10"></line>
+                    </svg>
+                    Connect MetaMask Wallet
+                </button>
+
+                <button id="deployBtn" class="btn btn-primary" style="width: 100%;" disabled onclick="executeContractDeployment()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    Deploy Contract to Sepolia
+                </button>
+            </div>
+
+            <!-- Faucet Callout if 0 balance -->
+            <div id="faucetAlert" class="notice-box notice-info" style="display: none; margin-top: 1.25rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <div>
+                    <b>Need SepoliaETH?</b> Your wallet balance is 0. Get free testnet ETH to pay for transaction gas:
+                    <div style="margin-top: 0.4rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <a href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia" target="_blank" style="color: var(--primary); font-weight: 600;">Google Cloud Sepolia Faucet ↗</a>
+                        <span style="color: var(--text-muted);">&bull;</span>
+                        <a href="https://www.alchemy.com/faucets/ethereum-sepolia" target="_blank" style="color: var(--primary); font-weight: 600;">Alchemy Faucet ↗</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Status & Progress -->
+            <div id="deployStatusBox" style="margin-top: 1.5rem;"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>CertChain - Automated Smart Contract Deployment &copy; 2026</p>
+    </footer>
+
+    <script>
+        let provider, signer, userAddress;
+        let contractBuild = null;
+        const TARGET_CHAIN_ID = "0xaa36a7"; // 11155111 Sepolia
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            await loadContractBuild();
+            if (window.ethereum) {
+                // Auto-detect if already connected
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    await connectAndCheckWallet();
+                }
+            }
+        });
+
+        async function loadContractBuild() {
+            try {
+                const res = await fetch('contracts/CertificateRegistryBuild.json');
+                contractBuild = await res.json();
+            } catch (e) {
+                console.error("Could not fetch build JSON:", e);
+            }
+        }
+
+        async function connectAndCheckWallet() {
+            if (!window.ethereum) {
+                alert("Please install MetaMask to deploy your smart contract!");
+                return;
+            }
+
+            try {
+                provider = new ethers.BrowserProvider(window.ethereum);
+                const accounts = await provider.send("eth_requestAccounts", []);
+                userAddress = accounts[0];
+                signer = await provider.getSigner();
+
+                // Check network
+                const network = await provider.getNetwork();
+                if (network.chainId !== 11155111n) {
+                    try {
+                        await window.ethereum.request({
+                            method: "wallet_switchEthereumChain",
+                            params: [{ chainId: TARGET_CHAIN_ID }]
+                        });
+                    } catch (switchErr) {
+                        alert("Please switch MetaMask network to Ethereum Sepolia Testnet.");
+                        return;
+                    }
+                }
+
+                // Check balance
+                const balance = await provider.getBalance(userAddress);
+                const balanceEth = parseFloat(ethers.formatEther(balance));
+
+                // Update UI
+                document.getElementById("walletCheckText").innerText = `Connected (${userAddress.slice(0, 6)}...${userAddress.slice(-4)})`;
+                document.getElementById("walletCheckText").style.color = "var(--success)";
+
+                document.getElementById("balanceCheckText").innerText = `${balanceEth.toFixed(4)} SepoliaETH`;
+
+                const deployBtn = document.getElementById("deployBtn");
+                const faucetAlert = document.getElementById("faucetAlert");
+                const pill = document.getElementById("networkStatusPill");
+
+                pill.className = "status-pill connected";
+                pill.innerHTML = `<span class="status-dot"></span> Sepolia Connected`;
+
+                if (balanceEth > 0) {
+                    deployBtn.disabled = false;
+                    faucetAlert.style.display = "none";
+                    document.getElementById("balanceCheckText").style.color = "var(--success)";
+                } else {
+                    deployBtn.disabled = true;
+                    faucetAlert.style.display = "flex";
+                    document.getElementById("balanceCheckText").style.color = "var(--danger)";
+                }
+
+                document.getElementById("connectBtn").innerText = "✓ Wallet Connected";
+
+            } catch (err) {
+                console.error("Connection error:", err);
+                alert("Could not connect MetaMask: " + err.message);
+            }
+        }
+
+        async function executeContractDeployment() {
+            if (!contractBuild || !signer) {
+                alert("Build data or signer not ready.");
+                return;
+            }
+
+            const deployBtn = document.getElementById("deployBtn");
+            const statusBox = document.getElementById("deployStatusBox");
+
+            deployBtn.disabled = true;
+            deployBtn.innerHTML = `<span class="spinner"></span> Waiting for MetaMask confirmation...`;
+
+            statusBox.innerHTML = `
+                <div class="result-card" style="background: #eff6ff; border-color: #93c5fd;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                        <span class="spinner" style="border-color: #2563eb; border-bottom-color: transparent;"></span>
+                        <div>
+                            <b>Please confirm the deployment in MetaMask</b>
+                            <p style="font-size: 0.85rem; color: #1e40af; margin-top: 0.2rem;">MetaMask will prompt you to approve the creation transaction.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const factory = new ethers.ContractFactory(contractBuild.abi, contractBuild.bytecode, signer);
+                const contract = await factory.deploy();
+
+                const txHash = contract.deploymentTransaction().hash;
+                const explorerTxUrl = `https://sepolia.etherscan.io/tx/${txHash}`;
+
+                statusBox.innerHTML = `
+                    <div class="result-card" style="background: #eff6ff; border-color: #93c5fd;">
+                        <h4 style="color: #1e40af; margin-bottom: 0.5rem;">Transaction Broadcasted to Sepolia!</h4>
+                        <p style="font-size: 0.9rem;">Tx Hash: <a href="${explorerTxUrl}" target="_blank" style="color: var(--primary); font-family: monospace;">${txHash} ↗</a></p>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.4rem;">
+                            <span class="spinner" style="width: 12px; height: 12px; border-color: #4f46e5; border-bottom-color: transparent; margin-right: 4px;"></span>
+                            Waiting for Ethereum block confirmation...
+                        </p>
+                    </div>
+                `;
+
+                await contract.waitForDeployment();
+                const contractAddress = await contract.getAddress();
+                const explorerAddressUrl = `https://sepolia.etherscan.io/address/${contractAddress}`;
+
+                // Automatically save the deployed address to js/config.js via local server API!
+                let saveMessage = "";
+                try {
+                    const saveRes = await fetch('/api/save-contract-address', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ address: contractAddress })
+                    });
+                    const saveJson = await saveRes.json();
+                    if (saveJson.success) {
+                        saveMessage = "✓ Automatically saved to js/config.js!";
+                    }
+                } catch (saveErr) {
+                    console.warn("Could not auto-save via API:", saveErr);
+                }
+
+                statusBox.innerHTML = `
+                    <div class="result-card result-valid">
+                        <div class="result-badge badge-valid">🎉 Successfully Deployed to Sepolia!</div>
+                        <h3 style="color: #166534; margin: 0.35rem 0 0.5rem 0;">Smart Contract is Live on Ethereum</h3>
+                        
+                        <div class="cert-grid" style="margin: 1rem 0;">
+                            <div class="cert-label">Contract:</div>
+                            <div class="cert-value"><b>CertificateRegistry</b></div>
+
+                            <div class="cert-label">Contract Address:</div>
+                            <div class="cert-value">
+                                <a href="${explorerAddressUrl}" target="_blank" style="color: var(--primary); font-family: monospace; font-weight: 700;">
+                                    ${contractAddress} ↗
+                                </a>
+                            </div>
+
+                            <div class="cert-label">Network:</div>
+                            <div class="cert-value">Ethereum Sepolia (ChainID: 11155111)</div>
+
+                            <div class="cert-label">Config Status:</div>
+                            <div class="cert-value" style="color: #15803d; font-weight: 600;">${saveMessage || "Updated"}</div>
+                        </div>
+
+                        <div class="result-actions" style="margin-top: 1rem;">
+                            <a href="issuer.html" class="btn btn-primary">
+                                Open Issuer Portal to Mint First Certificate ↗
+                            </a>
+                            <a href="index.html" class="btn btn-outline">
+                                Open Verification Portal ↗
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                deployBtn.disabled = true;
+                deployBtn.innerHTML = "✓ Deployment Complete";
+
+            } catch (err) {
+                console.error("Deployment error:", err);
+                statusBox.innerHTML = `
+                    <div class="result-card result-revoked">
+                        <div class="result-badge badge-revoked">Deployment Cancelled / Failed</div>
+                        <p style="margin-top: 0.5rem;"><b>Reason:</b> ${err.reason || err.message || String(err)}</p>
+                    </div>
+                `;
+                deployBtn.disabled = false;
+                deployBtn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    Retry Deployment
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

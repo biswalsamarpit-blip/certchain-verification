@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Issuer Portal - Blockchain Certificates</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Ethers.js v6 via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.0/ethers.umd.min.js"></script>
+    <!-- App Config -->
+    <script src="js/config.js"></script>
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <header class="navbar">
+        <a href="index.html" class="nav-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>CertChain</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Verify Certificate</a>
+            <a href="issuer.html" class="nav-link active">Issuer Portal</a>
+            <a href="deploy.html" class="nav-link">Deploy Contract</a>
+            <button id="connectWalletBtn" class="btn btn-outline" style="padding: 0.35rem 0.85rem; font-size: 0.82rem;" onclick="connectWallet()">
+                <span id="walletBtnText">Connect Wallet</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">University Issuer Portal</h1>
+                <p class="card-subtitle">Mint tamper-proof academic credentials directly onto the blockchain</p>
+                <div style="margin-top: 0.75rem;">
+                    <span id="networkStatus" class="status-pill demo">
+                        <span class="status-dot"></span> Checking Wallet...
+                    </span>
+                </div>
+            </div>
+
+            <!-- Wallet Information Banner -->
+            <div id="walletBanner" class="notice-box notice-info" style="display: none; margin-bottom: 1.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div style="flex: 1;">
+                    <div><b>Connected Account:</b> <span id="connectedAccount" style="font-family: monospace;"></span></div>
+                    <div style="font-size: 0.8rem; margin-top: 0.2rem; color: #1e3a8a;">Network: <span id="connectedNetwork">Sepolia Testnet</span></div>
+                </div>
+            </div>
+
+            <!-- Tabs: Issue vs Revoke -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+                <button id="tabIssueBtn" class="btn btn-primary" onclick="switchTab('issue')">Issue Certificate</button>
+                <button id="tabRevokeBtn" class="btn btn-outline" onclick="switchTab('revoke')">Revoke Certificate</button>
+            </div>
+
+            <!-- Issue Form -->
+            <section id="issueSection">
+                <form id="issueForm" onsubmit="event.preventDefault(); handleIssueCertificate();">
+                    <div class="form-group">
+                        <label class="form-label" for="certId">Certificate ID *</label>
+                        <input type="text" id="certId" class="form-control" placeholder="e.g. BCA2026-003" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="studentName">Student Full Name *</label>
+                        <input type="text" id="studentName" class="form-control" placeholder="e.g. Ananya Roy" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="course">Program / Degree *</label>
+                        <input type="text" id="course" class="form-control" placeholder="e.g. Master of Science in Data Science" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="institution">Issuing Institution *</label>
+                        <input type="text" id="institution" class="form-control" value="XYZ University" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="ipfsHash">
+                            IPFS Document Hash / CID
+                            <span style="font-weight: normal; font-size: 0.8rem; color: var(--text-muted);">(Optional - upload PDF to Pinata / IPFS)</span>
+                        </label>
+                        <input type="text" id="ipfsHash" class="form-control" placeholder="e.g. QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco">
+                    </div>
+
+                    <button type="submit" id="issueSubmitBtn" class="btn btn-primary" style="width: 100%;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        Issue & Sign Certificate on Blockchain
+                    </button>
+                </form>
+            </section>
+
+            <!-- Revoke Form -->
+            <section id="revokeSection" style="display: none;">
+                <form id="revokeForm" onsubmit="event.preventDefault(); handleRevokeCertificate();">
+                    <div class="form-group">
+                        <label class="form-label" for="revokeCertId">Certificate ID to Revoke *</label>
+                        <input type="text" id="revokeCertId" class="form-control" placeholder="e.g. BCA2026-001" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="revokeReason">Reason for Revocation *</label>
+                        <input type="text" id="revokeReason" class="form-control" placeholder="e.g. Invalidation due to academic disciplinary action" required>
+                    </div>
+
+                    <button type="submit" id="revokeSubmitBtn" class="btn btn-danger" style="width: 100%;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Revoke Certificate Permanently
+                    </button>
+                </form>
+            </section>
+
+            <!-- Transaction Feedback -->
+            <div id="txResult" style="margin-top: 1.5rem;"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Blockchain Certificate Verification System &copy; 2026. Built with Solidity &amp; Ethers.js.</p>
+    </footer>
+
+    <script src="js/issuer.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+# Deprecated: Renamed to .gitignore (Git does not read .gitignore.txt)
+# Please refer to .gitignore

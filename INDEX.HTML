@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Certificate Verification</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Ethers.js v6 via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.0/ethers.umd.min.js"></script>
+    <!-- Config & Engine -->
+    <script src="js/config.js"></script>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <a href="index.html" class="nav-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>CertChain</span>
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link active">Verify Certificate</a>
+            <a href="issuer.html" class="nav-link">Issuer Portal</a>
+            <a href="deploy.html" class="nav-link">Deploy Contract</a>
+            <span id="networkStatus" class="status-pill demo">
+                <span class="status-dot"></span> Checking Ledger...
+            </span>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">Certificate Verification System</h1>
+                <p class="card-subtitle">
+                    Verify the authenticity and tamper-proof validity of academic credentials on the blockchain.
+                </p>
+            </div>
+
+            <!-- Verification Input Form -->
+            <div class="form-group">
+                <label class="form-label" for="certificateId">Enter Certificate ID</label>
+                <div class="input-row">
+                    <input
+                        type="text"
+                        id="certificateId"
+                        class="form-control"
+                        placeholder="e.g. BCA2026-001"
+                        autocomplete="off"
+                        autofocus
+                    >
+                    <button id="verifyBtn" class="btn btn-primary" onclick="verifyCertificate()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Verify Certificate
+                    </button>
+                </div>
+
+                <!-- Quick Examples -->
+                <div class="quick-chips">
+                    <span>Try sample:</span>
+                    <button type="button" class="chip" data-id="BCA2026-001">BCA2026-001 (Valid)</button>
+                    <button type="button" class="chip" data-id="BCA2026-002">BCA2026-002 (Revoked)</button>
+                </div>
+            </div>
+
+            <!-- Verification Results Display -->
+            <div id="result"></div>
+
+            <!-- How It Works Information Box -->
+            <div class="notice-box notice-info">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div>
+                    <b>How does blockchain verification work?</b>
+                    <p style="margin-top: 0.25rem;">
+                        Certificates are cryptographically signed and permanently logged in an immutable smart contract.
+                        Anyone can verify certificate authenticity directly against public blockchain nodes without trusting a middleman or paying transaction fees.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Blockchain Certificate Verification System &copy; 2026. Built with Solidity &amp; Ethers.js.</p>
+    </footer>
+
+    <script src="js/verify.js"></script>
+</body>
+</html>
